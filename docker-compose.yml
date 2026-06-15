@@ -1,11 +1,15 @@
 services:
   mysql:
     image: mysql:8.4
+    container_name: lab7-mysql
     restart: unless-stopped
     env_file:
       - ./backend/.env
+    environment:
+      # Wymusza stworzenie bazy o tej nazwie
+      MYSQL_DATABASE: pasir
     ports:
-      - "3306:3306"
+      - "3307:3306"
     command:
       - mysqld
       - --character-set-server=utf8mb4
@@ -19,29 +23,44 @@ services:
       timeout: 10s
       retries: 5
       start_period: 60s
+    networks:
+      - lab_network
 
   backend:
     build:
       context: ./backend
+    container_name: lab7-backend
     restart: unless-stopped
     env_file:
       - ./backend/.env
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/$${MYSQL_DATABASE}?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
+      # Bezpośredni URL do utworzonej bazy 'pasir'
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/pasir?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
     ports:
       - "8080:8080"
     depends_on:
       mysql:
         condition: service_healthy
+    networks:
+      - lab_network
 
   frontend:
     build:
       context: ./frontend
+    container_name: lab7-frontend
     restart: unless-stopped
     ports:
       - "5174:8080"
     depends_on:
       - backend
+    networks:
+      - lab_network
+
+# --- PONIŻSZE LINIE SĄ KLUCZOWE, ŻEBY BŁĄD ZNIKNĄŁ ---
+# Definicja sieci i wolumenów (musi być bez wcięć na samym początku linii)
+networks:
+  lab_network:
+    driver: bridge
 
 volumes:
   mysql_data:
