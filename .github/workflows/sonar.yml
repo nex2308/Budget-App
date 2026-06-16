@@ -31,7 +31,7 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
 
       - name: Build backend
-        working-directory: backend/PASiR_Nazwisko_Imie
+        working-directory: backend/
         run: mvn clean install -DskipTests
 
       - name: Set up Node.js
